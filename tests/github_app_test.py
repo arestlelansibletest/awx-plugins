@@ -19,6 +19,11 @@ from cryptography.hazmat.primitives.serialization import (
 )
 from github.Auth import AppInstallationAuth
 from github.Consts import DEFAULT_JWT_ALGORITHM
+from github.GithubException import (
+    BadAttributeException,
+    GithubException,
+    UnknownObjectException,
+)
 from jwt import decode as decode_jwt
 
 from awx_plugins.credentials import github_app as gh_app_plugin_mod
@@ -166,6 +171,72 @@ def test_github_app_invalid_args(
             github_api_url='https://github.com',
             private_rsa_key='key',
             **extract_github_app_install_token_args,
+        )
+
+
+@pytest.mark.parametrize(
+    ('github_exception', 'transformed_exception', 'error_msg'),
+    (
+        (
+            BadAttributeException('', {}, Exception()),
+            RuntimeError,
+            (
+                r'^Broken GitHub @ https://github\.com with '
+                r'app_id: 123, install_id: 456\. It is a bug, '
+                'please report it to the '
+                r"developers\.\n\n\('', \{\}, Exception\(\)\)$"
+            ),
+        ),
+        (
+            GithubException(-1),
+            RuntimeError,
+            (
+                '^An unexpected error happened while talking to GitHub API @ '
+                r'https://github\.com \(app_id: 123, install_id: 456\)\. '
+                r'Is the app or client ID correct\? And the private RSA key\? '
+                r'See https://docs\.github\.com/rest/reference/apps'
+                r'#create-an-installation-access-token-for-an-app\.'
+                r'\n\n-1$'
+            ),
+        ),
+        (
+            UnknownObjectException(-1),
+            ValueError,
+            (
+                '^Failed to retrieve a GitHub installation token from '
+                r'https://github\.com using app_id: 123, install_id: 456\. '
+                r'Is the app installed\? See '
+                r'https://docs\.github\.com/rest/reference/apps'
+                r'#create-an-installation-access-token-for-an-app\.'
+                r'\n\n-1$'
+            ),
+        ),
+    ),
+    ids=('github-broken', 'unexpected-error', 'no-install'),
+)
+def test_github_app_api_errors(
+    mocker: MockerFixture,
+    github_exception: Exception,
+    transformed_exception: type[Exception],
+    error_msg: str,
+) -> None:
+    """Test successful GitHub authentication."""
+    application_id = 123
+    installation_id = 456
+
+    mocker.patch.object(
+        gh_app_plugin_mod.Auth.AppInstallationAuth,
+        'token',
+        new_callable=mocker.PropertyMock,
+        side_effect=github_exception,
+    )
+
+    with pytest.raises(transformed_exception, match=error_msg):
+        gh_app_plugin_mod.extract_github_app_install_token(
+            github_api_url='https://github.com',
+            app_id=application_id,
+            install_id=installation_id,
+            private_rsa_key='key',
         )
 
 
