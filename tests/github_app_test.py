@@ -20,23 +20,24 @@ class AppInstallIds(TypedDict):
 @pytest.mark.parametrize(
     ('extract_github_app_install_token_args', 'expected_error_msg'),
     (
-        (
+        pytest.param(
             {
                 'app_id': 'invalid',
                 'install_id': '666',
             },
             "^Expected GitHub App ID to be an integer but got 'invalid'$",
+            id='gh-app-id-broken-text',
         ),
-        (
+        pytest.param(
             {
                 'app_id': '999',
                 'install_id': 'invalid',
             },
             '^Expected GitHub App Installation ID to be an integer '
             "but got 'invalid'$",
+            id='gh-app-invalid-install-id-with-str-digit-app-id',
         ),
     ),
-    ids=('gh-app-id', 'gh-app-install-id'),
 )
 def test_github_app_invalid_args(
     extract_github_app_install_token_args: AppInstallIds,

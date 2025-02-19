@@ -132,14 +132,19 @@ class MaybeBaseURLKwarg(TypedDict, total=False):
     base_url: str
 
 
+def _is_intish(app_id_candidate: str | int) -> bool:
+    return isinstance(app_id_candidate, int) or app_id_candidate.isdigit()
+
+
 def _validate_inputs(
-    app_id: str, install_id: str,
+    app_id: str, install_id: int | str,
 ) -> None:
     if not app_id.isdigit():
         raise ValueError(
             f'Expected GitHub App ID to be an integer but got {app_id !r}',
         )
-    if not install_id.isdigit():
+
+    if not _is_intish(install_id):
         raise ValueError(
             'Expected GitHub App Installation ID to be an integer'
             f' but got {install_id !r}',
@@ -151,7 +156,7 @@ def extract_github_app_install_token(  # noqa: WPS210
     github_api_url: str,
     app_id: str,
     private_rsa_key: str,
-    install_id: str,
+    install_id: int | str,
     **_discarded_kwargs: Unpack[EmptyKwargs],
 ) -> str:
     """Generate a GH App Installation access token.
