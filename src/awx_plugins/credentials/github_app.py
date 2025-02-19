@@ -74,8 +74,8 @@ github_app_inputs: GitHubAppInputs = {
             'default': 'https://api.github.com',
         },
         {
-            'id': 'app_id',
-            'label': _('GitHub App ID'),
+            'id': 'app_or_client_id',
+            'label': _('GitHub App ID or Client ID'),
             'type': 'string',
             'help_text': _(
                 'The GitHub App ID created by the GitHub Admin. '
@@ -118,7 +118,7 @@ github_app_inputs: GitHubAppInputs = {
             'help_text': _('To be removed after UI is updated'),
         },
     ],
-    'required': ['app_id', 'install_id', 'private_rsa_key'],
+    'required': ['app_or_client_id', 'install_id', 'private_rsa_key'],
 }
 
 
@@ -167,13 +167,13 @@ def _is_app_or_client_id(app_or_client_id_candidate: str | int) -> bool:
 
 
 def _validate_inputs(
-    app_id: int | str, install_id: int | str,
+    app_or_client_id: int | str, install_id: int | str,
 ) -> None:
-    if not _is_app_or_client_id(app_id):
+    if not _is_app_or_client_id(app_or_client_id):
         raise ValueError(
             'Expected GitHub App or Client ID to be an integer or a string '
             f'starting with `Iv1.` followed by 16 hexadecimal digits, '
-            f'but got {app_id !r}',
+            f'but got {app_or_client_id !r}',
         )
 
     if not _is_intish(install_id):
@@ -186,7 +186,7 @@ def _validate_inputs(
 def extract_github_app_install_token(  # noqa: WPS210
     *,
     github_api_url: str,
-    app_id: int | str,
+    app_or_client_id: int | str,
     private_rsa_key: str,
     install_id: int | str,
     **_discarded_kwargs: Unpack[EmptyKwargs],
@@ -194,7 +194,7 @@ def extract_github_app_install_token(  # noqa: WPS210
     """Generate a GH App Installation access token.
 
     :param github_api_url: The GitHub instance API endpoint URL.
-    :param app_id: The GitHub App ID.
+    :param app_or_client_id: The GitHub App ID.
     :param private_rsa_key: The private key associated with the GitHub
         App.
     :param install_id: The GitHub App Installation ID.
@@ -203,10 +203,10 @@ def extract_github_app_install_token(  # noqa: WPS210
     :raises ValueError: If any required parameters are invalid.
     :raises RuntimeError: If any required parameters are invalid.
     """
-    _validate_inputs(app_id, install_id)
+    _validate_inputs(app_or_client_id, install_id)
 
     auth = Auth.AppAuth(
-        app_id=str(app_id),
+        app_id=str(app_or_client_id),
         private_key=private_rsa_key,
     ).get_installation_auth(installation_id=int(install_id))
 
@@ -222,7 +222,9 @@ def extract_github_app_install_token(  # noqa: WPS210
         'See https://docs.github.com/rest/reference/apps'
         '#create-an-installation-access-token-for-an-app'
     )
-    app_install_context = f'app_id: {app_id}, install_id: {install_id}'
+    app_install_context = (
+        f'app_or_client_id: {app_or_client_id}, install_id: {install_id}'
+    )
 
     try:
         return auth.token

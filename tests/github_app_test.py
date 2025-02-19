@@ -85,7 +85,7 @@ def rsa_public_key_bytes(rsa_public_key: RSAPublicKey) -> bytes:
 class AppInstallIds(TypedDict):
     """Schema for augmented extractor function keyword args."""
 
-    app_id: str
+    app_or_client_id: str
     install_id: str
 
 
@@ -94,7 +94,7 @@ class AppInstallIds(TypedDict):
     (
         pytest.param(
             {
-                'app_id': 'invalid',
+                'app_or_client_id': 'invalid',
                 'install_id': '666',
             },
             '^Expected GitHub App or Client ID to be an integer or a string '
@@ -104,7 +104,7 @@ class AppInstallIds(TypedDict):
         ),
         pytest.param(
             {
-                'app_id': 'Iv1.bbbbbbbbbbbbbbb',
+                'app_or_client_id': 'Iv1.bbbbbbbbbbbbbbb',
                 'install_id': '666',
             },
             '^Expected GitHub App or Client ID to be an integer or a string '
@@ -114,7 +114,7 @@ class AppInstallIds(TypedDict):
         ),
         pytest.param(
             {
-                'app_id': 'Iv1.bbbbbbbbbbbbbbbx',
+                'app_or_client_id': 'Iv1.bbbbbbbbbbbbbbbx',
                 'install_id': '666',
             },
             '^Expected GitHub App or Client ID to be an integer or a string '
@@ -124,7 +124,7 @@ class AppInstallIds(TypedDict):
         ),
         pytest.param(
             {
-                'app_id': 'Iv1.bbbbbbbbbbbbbbbbb',
+                'app_or_client_id': 'Iv1.bbbbbbbbbbbbbbbbb',
                 'install_id': '666',
             },
             '^Expected GitHub App or Client ID to be an integer or a string '
@@ -134,7 +134,7 @@ class AppInstallIds(TypedDict):
         ),
         pytest.param(
             {
-                'app_id': 999,
+                'app_or_client_id': 999,
                 'install_id': 'invalid',
             },
             '^Expected GitHub App Installation ID to be an integer '
@@ -143,7 +143,7 @@ class AppInstallIds(TypedDict):
         ),
         pytest.param(
             {
-                'app_id': '999',
+                'app_or_client_id': '999',
                 'install_id': 'invalid',
             },
             '^Expected GitHub App Installation ID to be an integer '
@@ -152,7 +152,7 @@ class AppInstallIds(TypedDict):
         ),
         pytest.param(
             {
-                'app_id': 'Iv1.cccccccccccccccc',
+                'app_or_client_id': 'Iv1.cccccccccccccccc',
                 'install_id': 'invalid',
             },
             '^Expected GitHub App Installation ID to be an integer '
@@ -175,14 +175,22 @@ def test_github_app_invalid_args(
 
 
 @pytest.mark.parametrize(
-    ('github_exception', 'transformed_exception', 'error_msg'),
+    (
+        'github_exception',
+        'transformed_exception',
+        'error_msg',
+    ),
     (
         (
-            BadAttributeException('', {}, Exception()),
+            BadAttributeException(
+                '',
+                {},
+                Exception(),
+            ),
             RuntimeError,
             (
                 r'^Broken GitHub @ https://github\.com with '
-                r'app_id: 123, install_id: 456\. It is a bug, '
+                r'app_or_client_id: 123, install_id: 456\. It is a bug, '
                 'please report it to the '
                 r"developers\.\n\n\('', \{\}, Exception\(\)\)$"
             ),
@@ -191,9 +199,11 @@ def test_github_app_invalid_args(
             GithubException(-1),
             RuntimeError,
             (
-                '^An unexpected error happened while talking to GitHub API @ '
-                r'https://github\.com \(app_id: 123, install_id: 456\)\. '
-                r'Is the app or client ID correct\? And the private RSA key\? '
+                '^An unexpected error happened while talking to GitHub API '
+                r'@ https://github\.com '
+                r'\(app_or_client_id: 123, install_id: 456\)\. '
+                r'Is the app or client ID correct\? '
+                r'And the private RSA key\? '
                 r'See https://docs\.github\.com/rest/reference/apps'
                 r'#create-an-installation-access-token-for-an-app\.'
                 r'\n\n-1$'
@@ -204,7 +214,8 @@ def test_github_app_invalid_args(
             ValueError,
             (
                 '^Failed to retrieve a GitHub installation token from '
-                r'https://github\.com using app_id: 123, install_id: 456\. '
+                r'https://github\.com using '
+                r'app_or_client_id: 123, install_id: 456\. '
                 r'Is the app installed\? See '
                 r'https://docs\.github\.com/rest/reference/apps'
                 r'#create-an-installation-access-token-for-an-app\.'
@@ -212,7 +223,11 @@ def test_github_app_invalid_args(
             ),
         ),
     ),
-    ids=('github-broken', 'unexpected-error', 'no-install'),
+    ids=(
+        'github-broken',
+        'unexpected-error',
+        'no-install',
+    ),
 )
 def test_github_app_api_errors(
     mocker: MockerFixture,
@@ -234,7 +249,7 @@ def test_github_app_api_errors(
     with pytest.raises(transformed_exception, match=error_msg):
         gh_app_plugin_mod.extract_github_app_install_token(
             github_api_url='https://github.com',
-            app_id=application_id,
+            app_or_client_id=application_id,
             install_id=installation_id,
             private_rsa_key='key',
         )
@@ -280,7 +295,7 @@ def test_github_app_github_authentication(  # noqa: WPS211
 
     token = gh_app_plugin_mod.extract_github_app_install_token(
         github_api_url='https://github.com',
-        app_id=application_id,
+        app_or_client_id=application_id,
         install_id=installation_id,
         private_rsa_key=rsa_private_key_str,
     )
