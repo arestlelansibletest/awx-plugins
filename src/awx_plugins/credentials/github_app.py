@@ -238,28 +238,25 @@ def extract_github_app_install_token(  # noqa: WPS210
     except (
         UnknownObjectException  # type: ignore[misc]
     ) as github_install_not_found_exc:
-        msg = (
+        raise ValueError(
             'Failed to retrieve a GitHub installation token from '
             f'{github_api_url !s} using {app_install_context !s}. '
             f'Is the app installed? {doc_url !s}.'
-            f'\n\n{github_install_not_found_exc !s}'
-        )
-        raise ValueError(msg) from github_install_not_found_exc
+            f'\n\n{github_install_not_found_exc !s}',
+        ) from github_install_not_found_exc
     except GithubException as pygithub_catchall_exc:  # type: ignore[misc]
-        msg = (
+        raise RuntimeError(
             'An unexpected error happened while talking to GitHub API @ '
             f'{github_api_url !s} ({app_install_context !s}). '
             'Is the app or client ID correct? And the private RSA key? '
-            f'{doc_url !s}.\n\n{pygithub_catchall_exc !s}'
-        )
-        raise RuntimeError(msg) from pygithub_catchall_exc
+            f'{doc_url !s}.\n\n{pygithub_catchall_exc !s}',
+        ) from pygithub_catchall_exc
     except BadAttributeException as github_broken_exc:  # type: ignore[misc]
-        msg = (
+        raise RuntimeError(
             f'Broken GitHub @ {github_api_url !s} with '
             f'{app_install_context !s}. It is a bug, please report it to the '
-            f'developers.\n\n{github_broken_exc !s}'
-        )
-        raise RuntimeError(msg) from github_broken_exc
+            f'developers.\n\n{github_broken_exc !s}',
+        ) from github_broken_exc
 
 
 github_app_lookup = CredentialPlugin(
