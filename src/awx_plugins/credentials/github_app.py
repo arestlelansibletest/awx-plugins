@@ -188,24 +188,24 @@ def extract_github_app_install_token(  # noqa: WPS210
 
     try:
         token = auth.token
-    except UnknownObjectException as github_exc:  # type: ignore[misc]
+    except UnknownObjectException as github_install_not_found_exc:
         msg = (
             f'Token retrieval failed {github_api_url} '
             f'mismatch {app_install_context}'
         )
-        raise ValueError(msg, github_exc) from github_exc
-    except GithubException as github_exc:  # type: ignore[misc]
+        raise ValueError(msg) from github_install_not_found_exc
+    except GithubException as pygithub_catchall_exc:
         msg = (
             f'Token retrieval failed {github_api_url} '
             f'{app_install_context}'
         )
-        raise RuntimeError(msg, doc_url, github_exc) from github_exc
-    except BadAttributeException as github_exc:  # type: ignore[misc]
+        raise RuntimeError(msg) from pygithub_catchall_exc
+    except BadAttributeException as github_broken_exc:
         msg = (
             f'Failure in {github_api_url} '
             f'{app_install_context}'
         )
-        raise RuntimeError(msg, doc_url, github_exc) from github_exc
+        raise RuntimeError(msg) from github_broken_exc
 
     return token
 
