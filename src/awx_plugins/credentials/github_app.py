@@ -79,7 +79,7 @@ github_app_inputs: GitHubAppInputs = {
             'label': _('GitHub App ID or Client ID'),
             'type': 'string',
             'help_text': _(
-                'The GitHub App ID created by the GitHub Admin. '
+                'The GitHub App ID or Client ID created by the GitHub Admin. '
                 'Example App ID: 1121547 '
                 'found on https://github.com/settings/apps/ '
                 'required for creating a JWT token for authentication',
