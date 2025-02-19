@@ -222,7 +222,7 @@ def extract_github_app_install_token(  # noqa: WPS210
         'See https://docs.github.com/rest/reference/apps'
         '#create-an-installation-access-token-for-an-app'
     )
-    app_install_context = f'with app_id: {app_id}, install_id: {install_id}'
+    app_install_context = f'app_id: {app_id}, install_id: {install_id}'
 
     try:
         return auth.token
