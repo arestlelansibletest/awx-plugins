@@ -190,20 +190,25 @@ def extract_github_app_install_token(  # noqa: WPS210
         return auth.token
     except UnknownObjectException as github_install_not_found_exc:
         msg = (
-            f'Token retrieval failed {github_api_url} '
-            f'mismatch {app_install_context}'
+            'Failed to retrieve a GitHub installation token from '
+            f'{github_api_url !s} using {app_install_context !s}. '
+            f'Is the app installed? {doc_url !s}.'
+            f'\n\n{github_install_not_found_exc !s}'
         )
         raise ValueError(msg) from github_install_not_found_exc
     except GithubException as pygithub_catchall_exc:
         msg = (
-            f'Token retrieval failed {github_api_url} '
-            f'{app_install_context}'
+            'An unexpected error happened while talking to GitHub API @ '
+            f'{github_api_url !s} ({app_install_context !s}). '
+            'Is the app or client ID correct? And the private RSA key? '
+            f'{doc_url !s}.\n\n{pygithub_catchall_exc !s}'
         )
         raise RuntimeError(msg) from pygithub_catchall_exc
     except BadAttributeException as github_broken_exc:
         msg = (
-            f'Failure in {github_api_url} '
-            f'{app_install_context}'
+            f'Broken GitHub @ {github_api_url !s} with '
+            f'{app_install_context !s}. It is a bug, please report it to the '
+            f'developers.\n\n{github_broken_exc !s}'
         )
         raise RuntimeError(msg) from github_broken_exc
 
