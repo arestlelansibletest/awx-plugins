@@ -18,6 +18,7 @@ from awx_plugins.interfaces._temporary_private_django_api import (  # noqa: WPS4
 )
 
 from github import Auth as Auth, Github
+from github.Consts import DEFAULT_BASE_URL as PUBLIC_GH_API_URL
 from github.GithubException import (
     BadAttributeException,
     GithubException,
@@ -126,12 +127,6 @@ class EmptyKwargs(TypedDict):
     """Schema for zero keyword arguments."""
 
 
-class MaybeBaseURLKwarg(TypedDict, total=False):
-    """Schema for optional PyGitHub ``base_url`` keyword argument."""
-
-    base_url: str
-
-
 GH_CLIENT_ID_TRAILER_LENGTH = 16
 HEXADECIMAL_BASE = 16
 
@@ -210,12 +205,9 @@ def extract_github_app_install_token(  # noqa: WPS210
         private_key=private_rsa_key,
     ).get_installation_auth(installation_id=int(install_id))
 
-    extra_gh_args: MaybeBaseURLKwarg = {
-        'base_url': github_api_url,
-    } if github_api_url else {}
     Github(  # Generate a GitHub App authentication token
         auth=auth,
-        **extra_gh_args,
+        base_url=github_api_url if github_api_url else PUBLIC_GH_API_URL,
     )
 
     doc_url = (
