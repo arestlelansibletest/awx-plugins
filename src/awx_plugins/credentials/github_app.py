@@ -166,7 +166,7 @@ def _is_app_or_client_id(app_or_client_id_candidate: str | int) -> bool:
     return _is_client_id(app_or_client_id_candidate)
 
 
-def _validate_inputs(
+def _assert_ids_look_acceptable(
     app_or_client_id: int | str, install_id: int | str,
 ) -> None:
     if not _is_app_or_client_id(app_or_client_id):
@@ -203,7 +203,7 @@ def extract_github_app_install_token(  # noqa: WPS210
     :raises ValueError: If any required parameters are invalid.
     :raises RuntimeError: If any required parameters are invalid.
     """
-    _validate_inputs(app_or_client_id, install_id)
+    _assert_ids_look_acceptable(app_or_client_id, install_id)
 
     auth = Auth.AppAuth(
         app_id=str(app_or_client_id),
