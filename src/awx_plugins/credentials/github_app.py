@@ -226,7 +226,18 @@ def extract_github_app_install_token(  # noqa: WPS210
 
     try:
         return auth.token
-    except UnknownObjectException as github_install_not_found_exc:
+    # NOTE: Exceptions coming from PyGitHub have `Any` in the base exception
+    # NOTE: initializer. This trips MyPy's `disallow_any_expr` check even
+    # NOTE: though it's not in our code. This is why we ignore `misc` in the
+    # NOTE: except blocks below.
+    #
+    # Ref:
+    # * https://github.com/PyGithub/PyGithub/issues/3218
+    # * https://github.com/PyGithub/PyGithub/blob/038624c/github\
+    #   /GithubException.py#L56
+    except (
+        UnknownObjectException  # type: ignore[misc]
+    ) as github_install_not_found_exc:
         msg = (
             'Failed to retrieve a GitHub installation token from '
             f'{github_api_url !s} using {app_install_context !s}. '
@@ -234,7 +245,7 @@ def extract_github_app_install_token(  # noqa: WPS210
             f'\n\n{github_install_not_found_exc !s}'
         )
         raise ValueError(msg) from github_install_not_found_exc
-    except GithubException as pygithub_catchall_exc:
+    except GithubException as pygithub_catchall_exc:  # type: ignore[misc]
         msg = (
             'An unexpected error happened while talking to GitHub API @ '
             f'{github_api_url !s} ({app_install_context !s}). '
@@ -242,7 +253,7 @@ def extract_github_app_install_token(  # noqa: WPS210
             f'{doc_url !s}.\n\n{pygithub_catchall_exc !s}'
         )
         raise RuntimeError(msg) from pygithub_catchall_exc
-    except BadAttributeException as github_broken_exc:
+    except BadAttributeException as github_broken_exc:  # type: ignore[misc]
         msg = (
             f'Broken GitHub @ {github_api_url !s} with '
             f'{app_install_context !s}. It is a bug, please report it to the '
