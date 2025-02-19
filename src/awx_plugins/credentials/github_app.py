@@ -187,7 +187,7 @@ def extract_github_app_install_token(  # noqa: WPS210
     app_install_context = f'with app_id: {app_id}, install_id: {install_id}'
 
     try:
-        token = auth.token
+        return auth.token
     except UnknownObjectException as github_install_not_found_exc:
         msg = (
             f'Token retrieval failed {github_api_url} '
@@ -206,8 +206,6 @@ def extract_github_app_install_token(  # noqa: WPS210
             f'{app_install_context}'
         )
         raise RuntimeError(msg) from github_broken_exc
-
-    return token
 
 
 github_app_lookup = CredentialPlugin(
