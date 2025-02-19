@@ -132,7 +132,7 @@ class MaybeBaseURLKwarg(TypedDict, total=False):
     base_url: str
 
 
-def _validate_inputs(  # noqa: DAR101
+def _validate_inputs(
     app_id: str, install_id: str,
 ) -> None:
     if not app_id.isdigit():
