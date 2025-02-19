@@ -29,7 +29,7 @@ class AppInstallIds(TypedDict):
         ),
         (
             {
-                'app_id': '666',
+                'app_id': '999',
                 'install_id': 'invalid',
             },
             '^Expected GitHub App Installation ID to be an integer '
