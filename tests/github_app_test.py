@@ -25,8 +25,49 @@ class AppInstallIds(TypedDict):
                 'app_id': 'invalid',
                 'install_id': '666',
             },
-            "^Expected GitHub App ID to be an integer but got 'invalid'$",
+            '^Expected GitHub App or Client ID to be an integer or a string '
+            r'starting with `Iv1\.` followed by 16 hexadecimal digits, but got'
+            " 'invalid'$",
             id='gh-app-id-broken-text',
+        ),
+        pytest.param(
+            {
+                'app_id': 'Iv1.bbbbbbbbbbbbbbb',
+                'install_id': '666',
+            },
+            '^Expected GitHub App or Client ID to be an integer or a string '
+            r'starting with `Iv1\.` followed by 16 hexadecimal digits, but got'
+            " 'Iv1.bbbbbbbbbbbbbbb'$",
+            id='gh-app-id-client-id-not-enough-chars',
+        ),
+        pytest.param(
+            {
+                'app_id': 'Iv1.bbbbbbbbbbbbbbbx',
+                'install_id': '666',
+            },
+            '^Expected GitHub App or Client ID to be an integer or a string '
+            r'starting with `Iv1\.` followed by 16 hexadecimal digits, but got'
+            " 'Iv1.bbbbbbbbbbbbbbbx'$",
+            id='gh-app-id-client-id-broken-hex',
+        ),
+        pytest.param(
+            {
+                'app_id': 'Iv1.bbbbbbbbbbbbbbbbb',
+                'install_id': '666',
+            },
+            '^Expected GitHub App or Client ID to be an integer or a string '
+            r'starting with `Iv1\.` followed by 16 hexadecimal digits, but got'
+            " 'Iv1.bbbbbbbbbbbbbbbbb'$",
+            id='gh-app-id-client-id-too-many-chars',
+        ),
+        pytest.param(
+            {
+                'app_id': 999,
+                'install_id': 'invalid',
+            },
+            '^Expected GitHub App Installation ID to be an integer '
+            "but got 'invalid'$",
+            id='gh-app-invalid-install-id-with-int-app-id',
         ),
         pytest.param(
             {
@@ -36,6 +77,15 @@ class AppInstallIds(TypedDict):
             '^Expected GitHub App Installation ID to be an integer '
             "but got 'invalid'$",
             id='gh-app-invalid-install-id-with-str-digit-app-id',
+        ),
+        pytest.param(
+            {
+                'app_id': 'Iv1.cccccccccccccccc',
+                'install_id': 'invalid',
+            },
+            '^Expected GitHub App Installation ID to be an integer '
+            "but got 'invalid'$",
+            id='gh-app-invalid-install-id-with-client-id',
         ),
     ),
 )

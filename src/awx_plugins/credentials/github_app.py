@@ -132,16 +132,48 @@ class MaybeBaseURLKwarg(TypedDict, total=False):
     base_url: str
 
 
+GH_CLIENT_ID_TRAILER_LENGTH = 16
+HEXADECIMAL_BASE = 16
+
+
 def _is_intish(app_id_candidate: str | int) -> bool:
     return isinstance(app_id_candidate, int) or app_id_candidate.isdigit()
 
 
+def _is_client_id(client_id_candidate: str) -> bool:
+    client_id_prefix = 'Iv1.'
+    if not client_id_candidate.startswith(client_id_prefix):
+        return False
+
+    client_id_trailer = client_id_candidate.removeprefix(client_id_prefix)
+
+    if len(client_id_trailer) != GH_CLIENT_ID_TRAILER_LENGTH:
+        return False
+
+    try:
+        int(client_id_trailer, base=HEXADECIMAL_BASE)
+    except ValueError:
+        return False
+
+    return True
+
+
+def _is_app_or_client_id(app_or_client_id_candidate: str | int) -> bool:
+    if _is_intish(app_or_client_id_candidate):
+        return True
+
+    assert not isinstance(app_or_client_id_candidate, int)  # type narrowing
+    return _is_client_id(app_or_client_id_candidate)
+
+
 def _validate_inputs(
-    app_id: str, install_id: int | str,
+    app_id: int | str, install_id: int | str,
 ) -> None:
-    if not app_id.isdigit():
+    if not _is_app_or_client_id(app_id):
         raise ValueError(
-            f'Expected GitHub App ID to be an integer but got {app_id !r}',
+            'Expected GitHub App or Client ID to be an integer or a string '
+            f'starting with `Iv1.` followed by 16 hexadecimal digits, '
+            f'but got {app_id !r}',
         )
 
     if not _is_intish(install_id):
@@ -154,7 +186,7 @@ def _validate_inputs(
 def extract_github_app_install_token(  # noqa: WPS210
     *,
     github_api_url: str,
-    app_id: str,
+    app_id: int | str,
     private_rsa_key: str,
     install_id: int | str,
     **_discarded_kwargs: Unpack[EmptyKwargs],
@@ -174,7 +206,7 @@ def extract_github_app_install_token(  # noqa: WPS210
     _validate_inputs(app_id, install_id)
 
     auth = Auth.AppAuth(
-        app_id=int(app_id),
+        app_id=str(app_id),
         private_key=private_rsa_key,
     ).get_installation_auth(installation_id=int(install_id))
 
